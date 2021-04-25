@@ -1,5 +1,5 @@
 # Expense_Tracker
 
-1. Author: R Charitra
+- Author: R Charitra
 
 ## This app would be simultaneously deployed on playstore and appstore once completed

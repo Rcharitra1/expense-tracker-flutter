@@ -42,18 +42,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Transaction> _transactions = [
-    Transaction(
-        id: Uuid().v4().substring(0, 8),
-        title: 'New Shoes',
-        amount: 10.00,
-        date: DateTime.now()),
-    Transaction(
-        id: Uuid().v4().substring(0, 8),
-        title: 'New Hoodies',
-        amount: 12.99,
-        date: DateTime.now())
-  ];
+  final List<Transaction> _transactions = [];
 
   List<Transaction> get _recentTransactions {
     return _transactions.where((element) {
@@ -61,14 +50,20 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addNewTransaction(String title, double amount) {
+  void _addNewTransaction(String title, double amount, DateTime pickedDate) {
     final newTx = Transaction(
         title: title,
         amount: amount,
-        date: DateTime.now(),
+        date: pickedDate,
         id: Uuid().v4().substring(0, 8));
     setState(() {
       _transactions.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _transactions.removeWhere((element) => element.id == id);
     });
   }
 
@@ -102,13 +97,8 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Container(width: double.infinity, child: Chart(_recentTransactions)
-              // Card(
-              //     // child: Text('Chart'),
-              //     // elevation: 5,
-              //     child: Chart(_recentTransactions)),
-              ),
-          TransactionList(_transactions)
+          Container(width: double.infinity, child: Chart(_recentTransactions)),
+          TransactionList(_transactions, _deleteTransaction)
         ],
       )),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

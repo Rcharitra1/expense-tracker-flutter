@@ -5,6 +5,7 @@ import './widgets/new_transaction.dart';
 import './model/transaction.dart';
 import 'package:uuid/uuid.dart';
 import './widgets/chart.dart';
+import './db/database.dart';
 
 void main() {
   runApp(MyApp());
@@ -42,11 +43,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<TransactionQ> _transactions = [];
+  @override
+  void initState() {
+    super.initState();
+    DatabaseProvider.db.getTransactions().then((list) {
+      setState(() {
+        _transactions = list.toList();
+      });
+    });
+  }
+
+  List<TransactionQ> _transactions = [];
 
   List<TransactionQ> get _recentTransactions {
     return _transactions.where((element) {
-      return element.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
+      return DateTime.parse(element.date)
+          .isAfter(DateTime.now().subtract(Duration(days: 7)));
     }).toList();
   }
 
@@ -54,9 +66,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final newTx = TransactionQ(
         title: title,
         amount: amount,
-        date: pickedDate,
+        date: pickedDate.toString(),
         id: Uuid().v4().substring(0, 8));
     setState(() {
+      DatabaseProvider.db.insert(newTx).then((added) => print(added));
       _transactions.add(newTx);
     });
   }
@@ -64,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteTransaction(String id) {
     setState(() {
       _transactions.removeWhere((element) => element.id == id);
+      DatabaseProvider.db.delete(id);
     });
   }
 

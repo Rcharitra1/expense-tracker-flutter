@@ -1,3 +1,4 @@
+import 'package:expense_tracker/model/transaction.dart';
 import 'package:sqflite/sqflite.dart';
 // import 'package:sqflite/sqlite_api.dart';
 import 'package:path/path.dart';
@@ -36,5 +37,31 @@ class DatabaseProvider {
         "$COLUMN_DATE TEXT )",
       );
     });
+  }
+
+  Future<List<TransactionQ>> getTransactions() async {
+    final db = await database;
+
+    var transactions = await db.query(TABLE_EXPENSES,
+        columns: [COLUMN_ID, COLUMN_TITLE, COLUMN_AMOUNT, COLUMN_DATE]);
+    List<TransactionQ> transactionList = List<TransactionQ>();
+    transactions.forEach((element) {
+      TransactionQ transactionQ = TransactionQ.fromMap(element);
+
+      transactionList.add(transactionQ);
+    });
+    return transactionList;
+  }
+
+  Future<TransactionQ> insert(TransactionQ transactionQ) async {
+    final db = await database;
+    await db.insert((TABLE_EXPENSES), transactionQ.toMap());
+    print('i go here');
+    return transactionQ;
+  }
+
+  void delete(String id) async {
+    final db = await database;
+    await db.delete(TABLE_EXPENSES, where: "$COLUMN_ID = ?", whereArgs: [id]);
   }
 }

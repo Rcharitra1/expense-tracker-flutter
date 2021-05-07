@@ -1,6 +1,7 @@
 import 'package:expense_tracker/widgets/new_transaction.dart';
 import 'package:expense_tracker/widgets/transaction_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import './widgets/new_transaction.dart';
 import './model/transaction.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +9,7 @@ import './widgets/chart.dart';
 import './db/database.dart';
 
 void main() {
+  // SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MyApp());
 }
 
@@ -55,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<TransactionQ> _transactions = [];
 
+  bool _showChart = false;
+
   List<TransactionQ> get _recentTransactions {
     return _transactions.where((element) {
       return DateTime.parse(element.date)
@@ -95,24 +99,65 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Expense Tracker',
-        ),
-        actions: <Widget>[
-          IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () => _startAddNewTransaction(context))
-        ],
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    final appBar = AppBar(
+      title: Text(
+        'Expense Tracker',
       ),
+      actions: <Widget>[
+        IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _startAddNewTransaction(context))
+      ],
+    );
+    final listWidget = Container(
+        height: (MediaQuery.of(context).size.height -
+                appBar.preferredSize.height -
+                MediaQuery.of(context).padding.top) *
+            0.7,
+        child: TransactionList(_transactions, _deleteTransaction));
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Container(width: double.infinity, child: Chart(_recentTransactions)),
-          TransactionList(_transactions, _deleteTransaction)
+          if (isLandscape)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text('Show Chart'),
+                Switch(
+                  value: _showChart,
+                  onChanged: (val) {
+                    setState(() {
+                      _showChart = !_showChart;
+                    });
+                  },
+                )
+              ],
+            ),
+          if (!isLandscape)
+            Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                width: double.infinity,
+                child: Chart(_recentTransactions)),
+          if (!isLandscape) listWidget,
+          _showChart
+              ? Container(
+                  height: (MediaQuery.of(context).size.height -
+                          appBar.preferredSize.height -
+                          MediaQuery.of(context).padding.top) *
+                      0.7,
+                  width: double.infinity,
+                  child: Chart(_recentTransactions))
+              : listWidget
         ],
       )),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
